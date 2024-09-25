@@ -11,6 +11,7 @@
         var value = queue.Dequeue();
         Console.WriteLine(value);
         // Defect(s) Found:
+        // The queue was trying to pull from index 1 instead of index 0
 
         Console.WriteLine("------------");
 
@@ -28,7 +29,8 @@
         Console.WriteLine(value);
         value = queue.Dequeue();
         Console.WriteLine(value);
-        // Defect(s) Found: 
+        // Defect(s) Found: The items were not being inserted in the
+        // right order. They were always being added at index 0
 
         Console.WriteLine("------------");
 
@@ -39,12 +41,13 @@
         queue = new SimpleQueue();
         try {
             queue.Dequeue();
-            Console.WriteLine("Oops ... This shouldn't have worked.");
+            Console.WriteLine("Wrong");
         }
         catch (IndexOutOfRangeException) {
-            Console.WriteLine("I got the exception as expected.");
+            Console.WriteLine("Exception");
         }
         // Defect(s) Found: 
+        // None
     }
 
     private readonly List<int> _queue = new();
@@ -66,8 +69,8 @@
         if (_queue.Count <= 0)
             throw new IndexOutOfRangeException();
 
-        var value = _queue[1];
-        _queue.RemoveAt(1);
+        var value = _queue[0];
+        _queue.RemoveAt(0);
         return value;
     }
 }
