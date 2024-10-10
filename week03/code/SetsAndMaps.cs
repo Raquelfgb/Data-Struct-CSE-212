@@ -21,28 +21,31 @@ public static class SetsAndMaps
     /// <param name="words">An array of 2-character words (lowercase, no duplicates)</param>
     public static string[] FindPairs(string[] words)
     {
+        // Create a result list to store symmetric pairs
         var result = new List<string>();
-        var set = new HashSet<string>();
+        // Create a HashSet to store words as we iterate
+        var wordSet = new HashSet<string>();
 
+        // Iterate over each word in the input array
         foreach (var word in words)
         {
-            var reversedWord = new string(word.Reverse().ToArray());
+            // Reverse the word
+            var reversed = new string(word.Reverse().ToArray());
 
-        
-            if (word[0] == word[1]) continue;
-
-        
-            if (set.Contains(reversedWord))
+            // If the reverse exists in the set, it's a symmetric pair
+            if (wordSet.Contains(reversed))
             {
-                result.Add($"{reversedWord} & {word}");
+                // Add the symmetric pair to the result
+                result.Add($"{reversed} & {word}");
             }
             else
             {
-            
-                set.Add(word);
+                // Otherwise, add the word to the set
+                wordSet.Add(word);
             }
         }
 
+        // Convert the result list to an array and return
         return result.ToArray();
     }
 
@@ -59,27 +62,31 @@ public static class SetsAndMaps
     /// <returns>fixed array of divisors</returns>
     public static Dictionary<string, int> SummarizeDegrees(string filename)
     {
+        // Create a dictionary to store degree counts
         var degrees = new Dictionary<string, int>();
 
+        // Read each line from the file
         foreach (var line in File.ReadLines(filename))
         {
+            // Split the line by commas to extract fields
             var fields = line.Split(",");
-            if (fields.Length > 3)
-            {
-                var degree = fields[3].Trim();
 
-            
-                if (degrees.ContainsKey(degree))
-                {
-                    degrees[degree]++;
-                }
-                else
-                {
-                    degrees[degree] = 1;
-                }
+            // Degree is in the 4th column (index 3)
+            var degree = fields[3].Trim();
+
+            // If the degree is already in the dictionary, increment its count
+            if (degrees.ContainsKey(degree))
+            {
+                degrees[degree]++;
+            }
+            else
+            {
+                // Otherwise, add the degree to the dictionary with an initial count of 1
+                degrees[degree] = 1;
             }
         }
 
+        // Return the dictionary containing the degree summary
         return degrees;
     }
 
@@ -101,45 +108,37 @@ public static class SetsAndMaps
     /// </summary>
     public static bool IsAnagram(string word1, string word2)
     {
-    
-        word1 = new string(word1.ToLower().Where(c => !char.IsWhiteSpace(c)).ToArray());
-        word2 = new string(word2.ToLower().Where(c => !char.IsWhiteSpace(c)).ToArray());
+        // Convert both words to lowercase and remove any non-letter characters
+        word1 = new string(word1.ToLower().Where(char.IsLetter).ToArray());
+        word2 = new string(word2.ToLower().Where(char.IsLetter).ToArray());
 
-   
+        // If the lengths are not the same, they cannot be anagrams
         if (word1.Length != word2.Length)
-        {
             return false;
-        }
 
-        var letterCounts1 = new Dictionary<char, int>();
-        var letterCounts2 = new Dictionary<char, int>();
+        // Create a dictionary to count the occurrences of characters in word1
+        var charCount = new Dictionary<char, int>();
 
-        foreach (char c in word1)
+        // Populate the dictionary with character counts from word1
+        foreach (var c in word1)
         {
-            if (letterCounts1.ContainsKey(c))
-            {
-                letterCounts1[c]++;
-            }
+            if (charCount.ContainsKey(c))
+                charCount[c]++;
             else
-            {
-                letterCounts1[c] = 1;
-            }
+                charCount[c] = 1;
         }
 
-        foreach (char c in word2)
+        // Check each character in word2 against the dictionary
+        foreach (var c in word2)
         {
-            if (letterCounts2.ContainsKey(c))
-            {
-                letterCounts2[c]++;
-            }
-            else
-            {
-                letterCounts2[c] = 1;
-            }
+            if (!charCount.ContainsKey(c) || charCount[c] == 0)
+                return false;
+
+            charCount[c]--;
         }
 
-        return letterCounts1.Count == letterCounts2.Count && 
-               letterCounts1.All(pair => letterCounts2.ContainsKey(pair.Key) && letterCounts2[pair.Key] == pair.Value);
+        // If all checks pass, the words are anagrams
+        return true;
     }
 
     /// <summary>
@@ -158,29 +157,43 @@ public static class SetsAndMaps
     /// </summary>
     public static string[] EarthquakeDailySummary()
     {
+        // The URL to fetch earthquake data from the USGS website
         const string uri = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_day.geojson";
+
+        // Create an HTTP client to send the request
         using var client = new HttpClient();
+
+        // Prepare the GET request
         using var getRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
+
+        // Get the response stream from the request
         using var jsonStream = client.Send(getRequestMessage).Content.ReadAsStream();
+
+        // Read the response stream
         using var reader = new StreamReader(jsonStream);
         var json = reader.ReadToEnd();
+
+        // Set JSON deserialization options to be case-insensitive
         var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
 
+        // Deserialize the JSON into an object of type FeatureCollection
         var featureCollection = JsonSerializer.Deserialize<FeatureCollection>(json, options);
 
-        var earthquakeDescriptions = new List<string>();
+        // Create a list to store the earthquake summaries
+        var summaries = new List<string>();
 
-    
+        // Iterate over each feature (earthquake) in the collection
         foreach (var feature in featureCollection.Features)
         {
-        
+            // Get the place and magnitude of the earthquake
             var place = feature.Properties.Place;
             var magnitude = feature.Properties.Mag;
 
-            earthquakeDescriptions.Add($"{place} - Mag{magnitude}");
+            // Add a formatted string to the summaries list
+            summaries.Add($"{place} - Mag {magnitude}");
         }
 
-    
-        return earthquakeDescriptions.ToArray();
+        // Return the summaries as an array
+        return summaries.ToArray();
     }
 }
