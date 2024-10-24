@@ -177,38 +177,30 @@ public static class Recursion
     /// Use recursion to insert all paths that start at (0,0) and end at the
     /// 'end' square into the results list.
     /// </summary>
-    void SolveMaze(Maze maze, int x, int y, List<(int, int)> currPath, List<string> results)
+    public static void SolveMaze(List<string> results, Maze maze, List<(int, int)>? currPath = null, int x = 0, int y = 0)
     {
-        // Add the current position to the path
+        currPath ??= new List<(int, int)>();
+
         currPath.Add((x, y));
 
-        // Check if we have reached the end
         if (maze.IsEnd(x, y))
         {
-            // Convert the path to a string and add to results
-            results.Add(string.Join("->", currPath.Select(pos => $"({pos.Item1}, {pos.Item2})")));
-            currPath.RemoveAt(currPath.Count - 1); // Backtrack
+            results.Add(currPath.AsString()); 
             return;
         }
 
-        // Explore all possible directions: down, up, right, left
-        int[] dx = { 1, -1, 0, 0 };
-        int[] dy = { 0, 0, 1, -1 };
+        var directions = new List<(int, int)> { (1, 0), (0, 1), (-1, 0), (0, -1) };
 
-        for (int i = 0; i < 4; i++)
+        foreach (var (dx, dy) in directions)
         {
-            int newX = x + dx[i];
-            int newY = y + dy[i];
+            int newX = x + dx;
+            int newY = y + dy;
 
-            if (maze.IsValidMove(newX, newY, currPath))
+            if (maze.IsValidMove(currPath, newX, newY))
             {
-                // Recur for the next position
-                SolveMaze(maze, newX, newY, currPath, results);
+                SolveMaze(results, maze, new List<(int, int)>(currPath), newX, newY);
             }
         }
-
-        // Backtrack by removing the last position from the current path
-        currPath.RemoveAt(currPath.Count - 1);
     }
 
 }
